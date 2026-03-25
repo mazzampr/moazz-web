@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { Lock, AlertCircle, ArrowLeft } from 'lucide-react';
@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
-export default function AdminLoginPage() {
+function AdminLoginContent() {
   const [secret, setSecret] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -129,5 +129,17 @@ export default function AdminLoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    }>
+      <AdminLoginContent />
+    </Suspense>
   );
 }

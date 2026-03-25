@@ -82,15 +82,15 @@ npm install
 3. Create `.env` file in `backend/` directory:
 ```env
 # Database
-DATABASE_URL="postgresql://postgres.xxintgplwpofqrwdzcko:jPODRAZY4Emx6RnJ@aws-1-ap-southeast-2.pooler.supabase.com:6543/postgres"
-DIRECT_URL="postgresql://postgres.xxintgplwpofqrwdzcko:jPODRAZY4Emx6RnJ@aws-1-ap-southeast-2.pooler.supabase.com:6543/postgres"
+DATABASE_URL=""
+DIRECT_URL=""
 
 # API Configuration
 PORT=3001
-CORS_ORIGIN=http://localhost:3000
+CORS_ORIGIN=domain
 
 # Supabase
-SUPABASE_URL=https://xxintgplwpofqrwdzcko.supabase.co
+SUPABASE_URL=""
 SUPABASE_ANON_KEY=your_anon_key_here
 ```
 
