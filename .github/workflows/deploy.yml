@@ -1,0 +1,67 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            # Navigate to app directory
+            cd ~/moazz-web
+            
+            # Pull latest code
+            git pull origin main
+            
+            # Create .env file if it doesn't exist
+            if [ ! -f .env ]; then
+              echo "Creating .env file..."
+              cat > .env << 'EOF'
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            DIRECT_URL=${{ secrets.DIRECT_URL }}
+            SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+            SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+            ADMIN_API_KEY=${{ secrets.ADMIN_API_KEY }}
+            EOF
+            fi
+            
+            # Stop existing containers
+            docker compose -f docker-compose.prod.yml down
+            
+            # Remove old images to save space
+            docker image prune -af
+            
+            # Build and start containers
+            docker compose -f docker-compose.prod.yml up -d --build
+            
+            # Show status
+            docker compose -f docker-compose.prod.yml ps
+            
+            # Show logs for verification
+            docker compose -f docker-compose.prod.yml logs --tail=50
+
+      - name: Deployment Status
+        if: success()
+        run: |
+          echo "Deployment successful!"
+          echo "Your app should be available at https://moazz.dev"
+          
+      - name: Deployment Failed
+        if: failure()
+        run: |
+          echo "Deployment failed. Check the logs above for details."

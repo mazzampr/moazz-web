@@ -18,8 +18,9 @@ build/
 out/
 *.tsbuildinfo
 
-# Docker volumes
+# Docker volumes and certificates
 nginx/ssl/
+certbot/
 
 # IDE
 .vscode/
