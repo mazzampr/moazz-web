@@ -17,6 +17,11 @@ A modern, fullstack portfolio website built with **NestJS** backend and **Next.j
 - **Tailwind CSS** v4 - Utility-first CSS framework
 - **Space Grotesk & Syne** - Custom Google Fonts
 
+### DevOps
+- **Docker** - Containerization
+- **Docker Compose** - Multi-container orchestration
+- **Nginx** - Reverse proxy and load balancer
+
 ## 📁 Project Structure
 
 ```
@@ -190,7 +195,27 @@ Frontend will be available at: `http://localhost:3000`
 
 ## 🚢 Deployment
 
-### Backend Deployment (Vercel/Railway/Render)
+### 🐳 Docker Deployment (Recommended)
+
+The easiest way to deploy is using Docker:
+
+```bash
+# Quick start
+chmod +x deploy.sh
+./deploy.sh
+```
+
+**Docker deployment includes:**
+- ✅ Backend (NestJS) container
+- ✅ Frontend (Next.js) container
+- ✅ Nginx reverse proxy
+- ✅ Health checks
+- ✅ Auto-restart on failure
+- ✅ One-command deployment
+
+### Manual Deployment
+
+#### Backend Deployment (Vercel/Railway/Render)
 
 1. Set environment variables on your platform
 2. Build the application:

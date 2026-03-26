@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # Backend API (NestJS)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: moazz-backend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      # Database
+      DATABASE_URL: ${DATABASE_URL}
+      DIRECT_URL: ${DIRECT_URL}
+      
+      # API Configuration
+      PORT: 3001
+      API_PREFIX: api/v1
+      
+      # Security
+      ADMIN_API_KEY: ${ADMIN_API_KEY}
+      
+      # CORS - Allow frontend to connect
+      CORS_ORIGIN: http://localhost:3000
+      
+      # Supabase
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+    networks:
+      - moazz-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/v1/projects', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: moazz-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # API URL - Points to backend service
+      NEXT_PUBLIC_API_URL: http://backend:3001/api/v1
+      
+      # Admin Secret
+      ADMIN_SECRET: ${ADMIN_API_KEY}
+      
+      # Production mode
+      NODE_ENV: production
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - moazz-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Nginx Reverse Proxy (Optional but recommended)
+  nginx:
+    image: nginx:alpine
+    container_name: moazz-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - moazz-network
+
+networks:
+  moazz-network:
+    driver: bridge
+
+# For persistent data (if needed in future)
+volumes:
+  backend-data:
