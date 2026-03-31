@@ -8,12 +8,14 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to VPS
+    name: Smart Deploy to VPS
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Fetch last 2 commits to compare changes
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.0.3
@@ -21,48 +23,153 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          timeout: 60s
+          command_timeout: 45m
           script: |
+            echo "=========================================="
+            echo "🚀 Starting Smart Deployment"
+            echo "=========================================="
+            
             # Navigate to app directory
             cd ~/moazz-web
             
+            # Fetch latest changes and detect what changed
+            echo "📡 Fetching latest changes..."
+            git fetch origin main
+            
+            # Get list of changed files between current HEAD and origin/main
+            CHANGED_FILES=$(git diff --name-only HEAD origin/main)
+            echo "📝 Changed files:"
+            echo "$CHANGED_FILES"
+            
             # Pull latest code
+            echo "⬇️  Pulling latest code..."
             git pull origin main
             
             # Create .env file if it doesn't exist
             if [ ! -f .env ]; then
-              echo "Creating .env file..."
+              echo "📄 Creating .env file..."
               cat > .env << 'EOF'
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             DIRECT_URL=${{ secrets.DIRECT_URL }}
             SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-            SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
             SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
             ADMIN_API_KEY=${{ secrets.ADMIN_API_KEY }}
             EOF
             fi
             
-            # Stop existing containers
-            docker compose -f docker-compose.prod.yml down
+            # Smart rebuild detection
+            echo ""
+            echo "🔍 Analyzing changes..."
             
-            # Remove old images to save space
-            docker image prune -af
+            # Check if rebuild is needed
+            NEEDS_REBUILD=false
             
-            # Build and start containers
-            docker compose -f docker-compose.prod.yml up -d --build
+            # Check for dependency changes
+            if echo "$CHANGED_FILES" | grep -qE "package\.json|package-lock\.json"; then
+              echo "⚠️  Dependency files changed (package.json or package-lock.json)"
+              NEEDS_REBUILD=true
+            fi
+            
+            # Check for Dockerfile changes
+            if echo "$CHANGED_FILES" | grep -qE "Dockerfile"; then
+              echo "⚠️  Dockerfile changed"
+              NEEDS_REBUILD=true
+            fi
+            
+            # Check for Prisma schema changes
+            if echo "$CHANGED_FILES" | grep -qE "prisma/schema\.prisma"; then
+              echo "⚠️  Prisma schema changed"
+              NEEDS_REBUILD=true
+            fi
+            
+            # Check for Docker Compose changes
+            if echo "$CHANGED_FILES" | grep -qE "docker-compose\.prod\.yml"; then
+              echo "⚠️  Docker Compose configuration changed"
+              NEEDS_REBUILD=true
+            fi
+            
+            echo ""
+            echo "=========================================="
+            
+            # Execute deployment based on changes
+            if [ "$NEEDS_REBUILD" = true ]; then
+              echo "🔨 FULL REBUILD REQUIRED"
+              echo "=========================================="
+              echo "This will take approximately 20-30 minutes..."
+              echo ""
+              
+              # Stop existing containers
+              echo "🛑 Stopping containers..."
+              docker compose -f docker-compose.prod.yml down
+              
+              # Remove old images to save space
+              echo "🧹 Cleaning up old images..."
+              docker image prune -af
+              
+              # Build new images
+              echo "🔨 Building new images..."
+              docker compose -f docker-compose.prod.yml build --no-cache
+              
+              # Start containers
+              echo "▶️  Starting containers with new images..."
+              docker compose -f docker-compose.prod.yml up -d
+              
+            else
+              echo "⚡ QUICK DEPLOYMENT (Code changes only)"
+              echo "=========================================="
+              echo "This will take approximately 1-2 minutes..."
+              echo ""
+              
+              # Just restart containers with existing images
+              echo "🔄 Restarting containers..."
+              docker compose -f docker-compose.prod.yml up -d --force-recreate
+            fi
+            
+            echo ""
+            echo "=========================================="
+            echo "📊 Deployment Status"
+            echo "=========================================="
+            
+            # Wait for containers to be ready
+            echo "⏳ Waiting for containers to be healthy..."
+            sleep 10
             
             # Show status
             docker compose -f docker-compose.prod.yml ps
             
+            echo ""
+            echo "=========================================="
+            echo "📋 Recent Logs (Last 30 lines)"
+            echo "=========================================="
+            
             # Show logs for verification
-            docker compose -f docker-compose.prod.yml logs --tail=50
+            docker compose -f docker-compose.prod.yml logs --tail=30
+            
+            echo ""
+            echo "=========================================="
+            echo "✅ Deployment Complete!"
+            echo "=========================================="
+            if [ "$NEEDS_REBUILD" = true ]; then
+              echo "Deployed with FULL REBUILD"
+            else
+              echo "Deployed with QUICK RESTART"
+            fi
+            echo "Website: https://moazz.dev"
 
       - name: Deployment Status
         if: success()
         run: |
-          echo "Deployment successful!"
-          echo "Your app should be available at https://moazz.dev"
+          echo "✅ Deployment successful!"
+          echo "Your app is now live at https://moazz.dev"
           
       - name: Deployment Failed
         if: failure()
         run: |
-          echo "Deployment failed. Check the logs above for details."
+          echo "❌ Deployment failed!"
+          echo "Check the logs above for details."
+          echo "Common issues:"
+          echo "  - SSH connection failed (check VPS_HOST, VPS_USERNAME, VPS_SSH_KEY secrets)"
+          echo "  - Docker build timeout (check VPS resources)"
+          echo "  - Container health check failed (check application logs)"
