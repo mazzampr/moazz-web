@@ -84,19 +84,6 @@ jobs:
             echo "🧹 Cleaning up old images..."
             docker image prune -af
             
-            # Ensure swap is enabled (helps with low memory)
-            echo "💾 Checking swap memory..."
-            if [ $(swapon --show | wc -l) -eq 0 ]; then
-              echo "Creating swap file..."
-              sudo fallocate -l 2G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
-              sudo chmod 600 /swapfile
-              sudo mkswap /swapfile
-              sudo swapon /swapfile
-              echo "✅ Swap enabled"
-            else
-              echo "✅ Swap already enabled"
-            fi
-            
             # Build images one at a time to avoid memory issues
             echo "🔨 Building backend image (no cache)..."
             docker compose -f docker-compose.prod.yml build --no-cache backend
