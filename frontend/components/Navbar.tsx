@@ -43,7 +43,9 @@ export default function Navbar() {
               Articles
             </Link>
             <Link
-              href="#contact"
+              href="https://cal.com/moazzdev/30min"
+              target="_blank"              
+              rel="noopener noreferrer"
               className="px-6 py-3 bg-brand-white text-brand-black font-medium btn-brutal"
             >
               Let's Talk
@@ -96,7 +98,9 @@ export default function Navbar() {
               Articles
             </Link>
             <Link
-              href="mailto:mohazzampriyanto@gmail.com"
+              href="https://cal.com/moazzdev/30min"
+              target="_blank"              
+              rel="noopener noreferrer"
               className="px-6 py-3 bg-brand-blue text-brand-black font-medium btn-brutal text-center"
               onClick={() => setIsMenuOpen(false)}
             >

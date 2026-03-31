@@ -37,12 +37,23 @@ model Experience {
   @@map("experiences")
 }
 
+model Category {
+  id          String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  name        String    @unique @db.VarChar(255)
+  slug        String    @unique @db.VarChar(255)
+  articles    Article[]
+  created_at  DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@map("categories")
+}
+
 model Article {
   id           String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   title        String    @db.VarChar(255)
   slug         String    @unique @db.VarChar(255)
   content      String?   @db.Text
   is_published Boolean?  @default(false)
+  categories   Category[]
   published_at DateTime? @db.Timestamptz(6)
   created_at   DateTime? @default(now()) @db.Timestamptz(6)
 

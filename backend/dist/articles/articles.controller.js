@@ -22,9 +22,9 @@ let ArticlesController = class ArticlesController {
     constructor(articlesService) {
         this.articlesService = articlesService;
     }
-    findAll(all) {
+    findAll(all, category) {
         const publishedOnly = all !== 'true';
-        return this.articlesService.findAll(publishedOnly);
+        return this.articlesService.findAll(publishedOnly, category);
     }
     findById(id) {
         return this.articlesService.findById(id);
@@ -56,9 +56,16 @@ __decorate([
         type: Boolean,
         description: 'Include unpublished articles (admin only)',
     }),
+    (0, swagger_1.ApiQuery)({
+        name: 'category',
+        required: false,
+        type: String,
+        description: 'Filter by category slug',
+    }),
     __param(0, (0, common_1.Query)('all')),
+    __param(1, (0, common_1.Query)('category')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], ArticlesController.prototype, "findAll", null);
 __decorate([

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
@@ -9,7 +9,7 @@
   --brand-lime: #ccff00;
   --brand-blue: #3b82f6;
   --brand-gray: #1f1f1f;
-  
+
   --background: #0a0a0a;
   --foreground: #f4f4f4;
 }
@@ -98,3 +98,30 @@ body {
   animation: fade-in-up 0.8s ease-out forwards;
 }
 
+/* Quill Editor Overrides */
+.ql-editor img {
+  display: inline-block;
+  margin: 0.5rem;
+  vertical-align: top;
+}
+
+.prose-editor {
+  border: 1px solid #2a2a2a;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.prose-editor .ql-toolbar.ql-snow {
+  border: 0;
+  border-bottom: 1px solid #2a2a2a;
+  background-color: #0a0a0a;
+}
+
+.prose-editor .ql-container.ql-snow {
+  border: 0;
+  background-color: #0a0a0a;
+}
+
+.prose-editor .ql-editor {
+  color: #f4f4f4;
+}

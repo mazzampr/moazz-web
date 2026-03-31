@@ -11,6 +11,25 @@ import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
+function getPlainTextExcerpt(content: string, maxLength: number = 150) {
+  const plainText = content
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (plainText.length <= maxLength) {
+    return plainText;
+  }
+
+  return `${plainText.substring(0, maxLength).trim()}...`;
+}
+
 export default async function Home() {
   // Fetch data from backend
   let projects: Project[] = [];
@@ -38,7 +57,7 @@ export default async function Home() {
           <div className="flex flex-col md:flex-row justify-between items-end mb-20 border-b border-white/10 pb-8">
             <h2 className="text-5xl md:text-7xl font-display font-bold">SELECTED <br /> <span
               className="text-brand-blue">WORKS</span></h2>
-            <p className="text-gray-400 mt-4 md:mt-0 max-w-xs text-right">Curated projects that define our standard of
+            <p className="text-gray-400 mt-4 md:mt-0 max-w-xs text-right">Curated projects that define my standard of
               quality.</p>
           </div>
 
@@ -148,7 +167,7 @@ export default async function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
                 {articles
                   .filter((article) => article.is_published)
-                  .sort((a, b) => new Date(b.published_at || b.created_at).getTime() - new Date(a.published_at || a.created_at).getTime())
+                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                   .slice(0, 3)
                   .map((article) => (
                     <Link
@@ -171,7 +190,7 @@ export default async function Home() {
                         {article.title}
                       </h3>
                       <p className="text-brand-white/70 text-sm line-clamp-3 mb-6 flex-grow">
-                        {article.content.replace(/[#*`_\[\]]/g, '').substring(0, 150)}...
+                        {getPlainTextExcerpt(article.content)}
                       </p>
                       <span className="text-sm text-brand-blue group-hover:underline mt-auto inline-flex items-center gap-1">
                         Read More <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
@@ -207,7 +226,9 @@ export default async function Home() {
             creative ideas, or partnerships.
           </p>
           <a
-            href="mailto:hello@moazz.dev"
+            href="mailto:mohazzampriyanto@gmail.com"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-block px-10 py-5 bg-brand-blue text-brand-black font-bold btn-brutal text-lg"
           >
             Get In Touch

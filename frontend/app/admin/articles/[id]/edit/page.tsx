@@ -8,9 +8,9 @@ import { z } from 'zod';
 import { ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import 'easymde/dist/easymde.min.css';
+import Cookies from 'js-cookie';
 
-const SimpleMDE = dynamic(() => import('react-simplemde-editor'), {
+const QuillEditor = dynamic(() => import('@/components/QuillEditor'), {
   ssr: false,
   loading: () => (
     <div className="w-full h-64 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg animate-pulse" />
@@ -27,6 +27,7 @@ const articleSchema = z.object({
     .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens'),
   content: z.string().min(50, 'Content must be at least 50 characters'),
   is_published: z.boolean(),
+  categoryIds: z.array(z.string()).optional(),
 });
 
 type ArticleFormData = z.infer<typeof articleSchema>;
@@ -39,6 +40,49 @@ export default function EditArticlePage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Categories state
+  const [availableCategories, setAvailableCategories] = useState<any[]>([]);
+  const [newCatName, setNewCatName] = useState('');
+  const [creatingCat, setCreatingCat] = useState(false);
+
+  useEffect(() => {
+    fetch(`${API_URL}/categories`)
+      .then(res => res.json())
+      .then(data => setAvailableCategories(data || []))
+      .catch(err => console.error(err));
+  }, []);
+
+  const handleCreateCategory = async (e?: React.SyntheticEvent) => {
+    if (e) e.preventDefault();
+    if (!newCatName.trim()) return;
+    
+    setCreatingCat(true);
+    const slug = newCatName.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+    const secret = Cookies.get('ADMIN_SECRET');
+
+    try {
+      const res = await fetch(`${API_URL}/categories`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(secret ? { 'x-api-key': secret } : {}),
+        },
+        body: JSON.stringify({ name: newCatName, slug }),
+      });
+      if (res.ok) {
+        const newCat = await res.json();
+        setAvailableCategories([newCat, ...availableCategories]);
+        setNewCatName('');
+      } else {
+        alert('Failed to create category');
+      }
+    } catch(err) {
+      alert('Error creating category');
+    } finally {
+      setCreatingCat(false);
+    }
+  };
 
   const {
     register,
@@ -70,6 +114,7 @@ export default function EditArticlePage() {
             slug: data.slug,
             content: data.content,
             is_published: data.is_published,
+            categoryIds: data.categories?.map((c: any) => c.id) || [],
           });
         } else {
           setError('Article not found');
@@ -84,35 +129,6 @@ export default function EditArticlePage() {
     fetchArticle();
   }, [id, reset]);
 
-  const editorOptions = useMemo(
-    () => ({
-      spellChecker: false,
-      placeholder: 'Write your article content here...',
-      status: false,
-      autofocus: false,
-      toolbar: [
-        'bold',
-        'italic',
-        'heading',
-        '|',
-        'quote',
-        'unordered-list',
-        'ordered-list',
-        '|',
-        'link',
-        'image',
-        'code',
-        '|',
-        'preview',
-        'side-by-side',
-        'fullscreen',
-        '|',
-        'guide',
-      ] as const,
-    }),
-    []
-  );
-
   const onSubmit = async (data: ArticleFormData) => {
     setSubmitting(true);
     setError('');
@@ -123,9 +139,14 @@ export default function EditArticlePage() {
         published_at: data.is_published ? new Date().toISOString() : undefined,
       };
 
+      const secret = Cookies.get('ADMIN_SECRET');
+
       const res = await fetch(`${API_URL}/articles/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(secret ? { 'x-api-key': secret } : {}),
+        },
         body: JSON.stringify(payload),
       });
 
@@ -206,6 +227,45 @@ export default function EditArticlePage() {
           )}
         </div>
 
+        {/* Categories */}
+        <div className="bg-[#1a1a1a] border border-[#2a2a2a] p-4 rounded-lg">
+          <label className="block text-sm font-medium text-gray-300 mb-4">Categories</label>
+          
+          <div className="flex flex-wrap gap-2 mb-4">
+            {availableCategories.map((cat) => (
+              <label key={cat.id} className="inline-flex items-center gap-2 bg-[#0a0a0a] border border-[#2a2a2a] px-3 py-1.5 rounded-full cursor-pointer hover:border-brand-blue transition-colors">
+                <input 
+                  type="checkbox" 
+                  value={cat.id} 
+                  {...register('categoryIds')}
+                  className="accent-brand-blue bg-[#0a0a0a] border-[#2a2a2a]"
+                />
+                <span className="text-sm text-gray-300">{cat.name}</span>
+              </label>
+            ))}
+            {availableCategories.length === 0 && <span className="text-sm text-gray-500">No categories found.</span>}
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newCatName}
+              onChange={(e) => setNewCatName(e.target.value)}
+              onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleCreateCategory(e); } }}
+              placeholder="New category..."
+              className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-1.5 text-white placeholder-gray-500 focus:outline-none focus:border-brand-blue text-sm w-48"
+            />
+            <button 
+              type="button" 
+              onClick={handleCreateCategory}
+              disabled={creatingCat || !newCatName.trim()}
+              className="bg-brand-blue text-black text-sm px-3 py-1.5 rounded-lg font-medium hover:bg-white transition-colors disabled:opacity-50"
+            >
+              {creatingCat ? 'Adding...' : 'Add'}
+            </button>
+          </div>
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
             Content <span className="text-red-400">*</span>
@@ -215,10 +275,9 @@ export default function EditArticlePage() {
             control={control}
             render={({ field }) => (
               <div className="prose-editor">
-                <SimpleMDE
+                <QuillEditor
                   value={field.value}
                   onChange={field.onChange}
-                  options={editorOptions}
                 />
               </div>
             )}
@@ -281,73 +340,66 @@ export default function EditArticlePage() {
       </form>
 
       <style jsx global>{`
-        .prose-editor .EasyMDEContainer {
-          background: #0a0a0a;
-        }
-        .prose-editor .EasyMDEContainer .CodeMirror {
-          background: #0a0a0a;
-          color: #f4f4f4;
-          border: 1px solid #2a2a2a;
-          border-radius: 0.5rem;
-        }
-        .prose-editor .EasyMDEContainer .CodeMirror-cursor {
-          border-left-color: #ccff00;
-        }
-        .prose-editor .editor-toolbar {
+        .prose-editor .ql-toolbar.ql-snow {
           background: #1a1a1a;
           border: 1px solid #2a2a2a;
           border-bottom: none;
           border-radius: 0.5rem 0.5rem 0 0;
         }
-        .prose-editor .editor-toolbar button {
-          color: #888 !important;
-        }
-        .prose-editor .editor-toolbar button:hover,
-        .prose-editor .editor-toolbar button.active {
-          background: #2a2a2a;
-          color: #ccff00 !important;
-        }
-        .prose-editor .CodeMirror-selected {
-          background: rgba(204, 255, 0, 0.2) !important;
-        }
-        .prose-editor .CodeMirror-focused .CodeMirror-selected {
-          background: rgba(204, 255, 0, 0.3) !important;
-        }
-        .prose-editor .cm-header {
-          color: #ccff00 !important;
-        }
-        .prose-editor .cm-link {
-          color: #3b82f6 !important;
-        }
-        .prose-editor .cm-url {
-          color: #888 !important;
-        }
-        .prose-editor .cm-quote {
-          color: #888 !important;
-          font-style: italic;
-        }
-        .prose-editor .editor-preview,
-        .prose-editor .editor-preview-side {
+        .prose-editor .ql-container.ql-snow {
+          border: 1px solid #2a2a2a;
+          border-radius: 0 0 0.5rem 0.5rem;
           background: #0a0a0a;
           color: #f4f4f4;
         }
-        .prose-editor .editor-preview h1,
-        .prose-editor .editor-preview h2,
-        .prose-editor .editor-preview h3,
-        .prose-editor .editor-preview-side h1,
-        .prose-editor .editor-preview-side h2,
-        .prose-editor .editor-preview-side h3 {
-          color: #ccff00;
+        .prose-editor .ql-editor {
+          min-height: 16rem;
         }
-        .prose-editor .editor-preview pre,
-        .prose-editor .editor-preview-side pre {
+        .prose-editor .ql-editor.ql-blank::before {
+          color: #6b7280;
+        }
+        .prose-editor .ql-toolbar .ql-stroke {
+          stroke: #a3a3a3;
+        }
+        .prose-editor .ql-toolbar .ql-fill {
+          fill: #a3a3a3;
+        }
+        .prose-editor .ql-toolbar .ql-picker {
+          color: #a3a3a3;
+        }
+        .prose-editor .ql-toolbar .ql-picker-options {
           background: #1a1a1a;
           border: 1px solid #2a2a2a;
         }
-        .prose-editor .editor-preview code,
-        .prose-editor .editor-preview-side code {
-          background: #1a1a1a;
+        .prose-editor .ql-toolbar button:hover,
+        .prose-editor .ql-toolbar button.ql-active,
+        .prose-editor .ql-toolbar .ql-picker-label:hover,
+        .prose-editor .ql-toolbar .ql-picker-label.ql-active {
           color: #ccff00;
+        }
+        .prose-editor .ql-toolbar button:hover .ql-stroke,
+        .prose-editor .ql-toolbar button.ql-active .ql-stroke {
+          stroke: #ccff00;
+        }
+        .prose-editor .ql-toolbar button:hover .ql-fill,
+        .prose-editor .ql-toolbar button.ql-active .ql-fill {
+          fill: #ccff00;
+        }
+        .prose-editor .ql-editor h1,
+        .prose-editor .ql-editor h2,
+        .prose-editor .ql-editor h3 {
+          color: #ccff00;
+        }
+        .prose-editor .ql-editor a {
+          color: #3b82f6;
+        }
+        .prose-editor .ql-editor blockquote {
+          border-left: 4px solid #2a2a2a;
+          color: #a3a3a3;
+        }
+        .prose-editor .ql-editor pre {
+          background: #1a1a1a;
+          border: 1px solid #2a2a2a;
         }
       `}</style>
     </div>

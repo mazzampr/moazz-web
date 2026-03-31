@@ -60,7 +60,9 @@ export default function Hero() {
             View My Work
           </a>
           <a
-            href="#contact"
+            href="mailto:mohazzampriyanto@gmail.com"
+            target="_blank"
+            rel="noopener noreferrer"
             className="px-8 py-4 bg-transparent border-2 border-brand-white text-brand-white font-bold hover:bg-brand-white hover:text-brand-black transition-all text-lg"
           >
             Get In Touch

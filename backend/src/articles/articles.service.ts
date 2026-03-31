@@ -6,18 +6,30 @@ import { CreateArticleDto, UpdateArticleDto } from './dto/article.dto';
 export class ArticlesService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(publishedOnly: boolean = true) {
-    const where = publishedOnly ? { is_published: true } : {};
+  async findAll(publishedOnly: boolean = true, categorySlug?: string) {
+    const where: any = {};
+    if (publishedOnly) {
+      where.is_published = true;
+    }
+    if (categorySlug) {
+      where.categories = {
+        some: { slug: categorySlug }
+      };
+    }
 
     return this.prisma.article.findMany({
       where,
-      orderBy: { published_at: 'desc' },
+      orderBy: { created_at: 'desc' },
+      include: {
+        categories: true,
+      },
     });
   }
 
   async findBySlug(slug: string) {
     const article = await this.prisma.article.findUnique({
       where: { slug },
+      include: { categories: true },
     });
 
     if (!article) {
@@ -30,6 +42,7 @@ export class ArticlesService {
   async findById(id: string) {
     const article = await this.prisma.article.findUnique({
       where: { id },
+      include: { categories: true },
     });
 
     if (!article) {
@@ -40,23 +53,37 @@ export class ArticlesService {
   }
 
   async create(data: CreateArticleDto) {
+    const { categoryIds, ...restData } = data;
+    
     return this.prisma.article.create({
       data: {
-        ...data,
-        published_at: data.published_at ? new Date(data.published_at) : null,
+        ...restData,
+        published_at: restData.published_at ? new Date(restData.published_at) : null,
+        categories: {
+          connect: categoryIds?.map(id => ({ id })) || [],
+        }
       },
+      include: { categories: true },
     });
   }
 
   async update(id: string, data: UpdateArticleDto) {
     await this.findById(id); // Check if exists
 
-    const updateData: any = { ...data };
-    if (data.published_at) updateData.published_at = new Date(data.published_at);
+    const { categoryIds, ...restData } = data;
+    const updateData: any = { ...restData };
+    if (restData.published_at) updateData.published_at = new Date(restData.published_at);
+    
+    if (categoryIds !== undefined) {
+      updateData.categories = {
+        set: categoryIds.map(catId => ({ id: catId })),
+      };
+    }
 
     return this.prisma.article.update({
       where: { id },
       data: updateData,
+      include: { categories: true },
     });
   }
 

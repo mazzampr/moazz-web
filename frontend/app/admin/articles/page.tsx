@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Pencil, Trash2, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, EyeOff, Loader2, Tags } from 'lucide-react';
 import { Article } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -89,13 +89,22 @@ export default function AdminArticlesPage() {
           <h1 className="text-3xl font-bold text-white mb-2">Articles</h1>
           <p className="text-gray-400">Manage your blog posts</p>
         </div>
-        <Link
-          href="/admin/articles/create"
-          className="flex items-center gap-2 bg-brand-blue text-black font-bold px-4 py-2 rounded-lg hover:bg-white transition-colors"
-        >
-          <Plus size={20} />
-          <span>Write Article</span>
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            href="/admin/articles/categories"
+            className="flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] text-white font-bold px-4 py-2 rounded-lg hover:bg-[#2a2a2a] transition-colors"
+          >
+            <Tags size={20} />
+            <span className="hidden sm:inline">Categories</span>
+          </Link>
+          <Link
+            href="/admin/articles/create"
+            className="flex items-center gap-2 bg-brand-blue text-black font-bold px-4 py-2 rounded-lg hover:bg-white transition-colors"
+          >
+            <Plus size={20} />
+            <span className="hidden sm:inline">Write Article</span>
+          </Link>
+        </div>
       </div>
 
       {/* Articles Table */}
@@ -127,6 +136,9 @@ export default function AdminArticlesPage() {
                 </th>
                 <th className="text-left text-gray-400 text-sm font-medium px-6 py-4 hidden lg:table-cell">
                   Status
+                </th>
+                <th className="text-left text-gray-400 text-sm font-medium px-6 py-4 hidden md:table-cell">
+                  Categories
                 </th>
                 <th className="text-left text-gray-400 text-sm font-medium px-6 py-4 hidden md:table-cell">
                   Date
@@ -169,9 +181,10 @@ export default function AdminArticlesPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-gray-400 text-sm hidden md:table-cell">
-                    {article.published_at
-                      ? new Date(article.published_at).toLocaleDateString()
-                      : new Date(article.created_at).toLocaleDateString()}
+                    {article.categories?.map(c => c.name).join(', ') || 'Uncategorized'}
+                  </td>
+                  <td className="px-6 py-4 text-gray-400 text-sm hidden md:table-cell">
+                    {new Date(article.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
