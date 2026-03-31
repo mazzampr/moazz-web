@@ -47,17 +47,18 @@ jobs:
             echo "⬇️  Pulling latest code..."
             git pull origin main
             
-            # Create .env file if it doesn't exist
-            if [ ! -f .env ]; then
-              echo "📄 Creating .env file..."
-              cat > .env << 'EOF'
+            # Always update .env file with latest secrets from GitHub
+            echo "📄 Updating .env file with latest secrets..."
+            cat > .env << 'EOF'
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             DIRECT_URL=${{ secrets.DIRECT_URL }}
             SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+            SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
             SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
             ADMIN_API_KEY=${{ secrets.ADMIN_API_KEY }}
             EOF
-            fi
+            
+            echo "✅ .env file updated with latest secrets"
             
             # Smart rebuild detection
             echo ""
