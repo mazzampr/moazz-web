@@ -44,4 +44,9 @@ export const api = {
       body: JSON.stringify(data),
     }).then(res => res.json()),
   },
+
+  // Categories
+  categories: {
+    getAll: () => fetch(`${API_BASE_URL}/categories`).then(res => res.json()),
+  },
 };

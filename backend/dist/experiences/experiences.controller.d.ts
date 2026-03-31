@@ -4,53 +4,53 @@ export declare class ExperiencesController {
     private readonly experiencesService;
     constructor(experiencesService: ExperiencesService);
     findAll(): Promise<{
+        description: string | null;
         id: string;
+        created_at: Date | null;
         position: string;
         company: string;
         start_date: Date;
         end_date: Date | null;
-        description: string | null;
         order: number;
-        created_at: Date | null;
     }[]>;
     findById(id: string): Promise<{
+        description: string | null;
         id: string;
+        created_at: Date | null;
         position: string;
         company: string;
         start_date: Date;
         end_date: Date | null;
-        description: string | null;
         order: number;
-        created_at: Date | null;
     }>;
     create(createExperienceDto: CreateExperienceDto): Promise<{
+        description: string | null;
         id: string;
+        created_at: Date | null;
         position: string;
         company: string;
         start_date: Date;
         end_date: Date | null;
-        description: string | null;
         order: number;
-        created_at: Date | null;
     }>;
     update(id: string, updateExperienceDto: UpdateExperienceDto): Promise<{
+        description: string | null;
         id: string;
+        created_at: Date | null;
         position: string;
         company: string;
         start_date: Date;
         end_date: Date | null;
-        description: string | null;
         order: number;
-        created_at: Date | null;
     }>;
     delete(id: string): Promise<{
+        description: string | null;
         id: string;
+        created_at: Date | null;
         position: string;
         company: string;
         start_date: Date;
         end_date: Date | null;
-        description: string | null;
         order: number;
-        created_at: Date | null;
     }>;
 }

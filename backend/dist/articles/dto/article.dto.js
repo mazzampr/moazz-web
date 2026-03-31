@@ -57,6 +57,15 @@ __decorate([
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
 ], CreateArticleDto.prototype, "published_at", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        example: ['uuid-1', 'uuid-2'],
+        description: 'Array of category IDs',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    __metadata("design:type", Array)
+], CreateArticleDto.prototype, "categoryIds", void 0);
 class UpdateArticleDto {
 }
 exports.UpdateArticleDto = UpdateArticleDto;
@@ -92,4 +101,13 @@ __decorate([
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
 ], UpdateArticleDto.prototype, "published_at", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        example: ['uuid-1', 'uuid-2'],
+        description: 'Array of category IDs',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    __metadata("design:type", Array)
+], UpdateArticleDto.prototype, "categoryIds", void 0);
 //# sourceMappingURL=article.dto.js.map

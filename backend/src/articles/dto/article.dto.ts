@@ -46,6 +46,14 @@ export class CreateArticleDto {
   @IsOptional()
   @IsDateString()
   published_at?: string;
+
+  @ApiPropertyOptional({
+    example: ['uuid-1', 'uuid-2'],
+    description: 'Array of category IDs',
+  })
+  @IsOptional()
+  @IsString({ each: true })
+  categoryIds?: string[];
 }
 
 export class UpdateArticleDto {
@@ -75,4 +83,12 @@ export class UpdateArticleDto {
   @IsOptional()
   @IsDateString()
   published_at?: string;
+
+  @ApiPropertyOptional({
+    example: ['uuid-1', 'uuid-2'],
+    description: 'Array of category IDs',
+  })
+  @IsOptional()
+  @IsString({ each: true })
+  categoryIds?: string[];
 }

@@ -25,6 +25,12 @@ export interface Experience {
   created_at: string;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 export interface Article {
   id: string;
   title: string;
@@ -33,6 +39,7 @@ export interface Article {
   is_published: boolean;
   published_at?: string;
   created_at: string;
+  categories?: Category[];
 }
 
 export interface CreateProjectDto {

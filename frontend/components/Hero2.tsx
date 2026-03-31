@@ -78,7 +78,9 @@ export default function Hero2() {
               style={{ animationDelay: '0.6s' }}
             >
               <a
-                href="https://wa.me/6281234567890"
+                href="https://cal.com/moazzdev/30min"
+                target="_blank"              
+                rel="noopener noreferrer"
                 className="btn-brutal px-8 py-4 bg-white text-black font-bold text-lg uppercase tracking-wider inline-flex items-center gap-2 group hover:bg-brand-blue transition-colors"
               >
                 Start Project

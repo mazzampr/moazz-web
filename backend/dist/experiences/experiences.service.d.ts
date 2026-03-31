@@ -4,8 +4,8 @@ export declare class ExperiencesService {
     private prisma;
     constructor(prisma: PrismaService);
     findAll(): Promise<{
-        id: string;
         description: string | null;
+        id: string;
         created_at: Date | null;
         position: string;
         company: string;
@@ -14,8 +14,8 @@ export declare class ExperiencesService {
         order: number;
     }[]>;
     findById(id: string): Promise<{
-        id: string;
         description: string | null;
+        id: string;
         created_at: Date | null;
         position: string;
         company: string;
@@ -24,8 +24,8 @@ export declare class ExperiencesService {
         order: number;
     }>;
     create(data: CreateExperienceDto): Promise<{
-        id: string;
         description: string | null;
+        id: string;
         created_at: Date | null;
         position: string;
         company: string;
@@ -34,8 +34,8 @@ export declare class ExperiencesService {
         order: number;
     }>;
     update(id: string, data: UpdateExperienceDto): Promise<{
-        id: string;
         description: string | null;
+        id: string;
         created_at: Date | null;
         position: string;
         company: string;
@@ -44,8 +44,8 @@ export declare class ExperiencesService {
         order: number;
     }>;
     delete(id: string): Promise<{
-        id: string;
         description: string | null;
+        id: string;
         created_at: Date | null;
         position: string;
         company: string;

@@ -14,6 +14,8 @@ const projects_module_1 = require("./projects/projects.module");
 const experiences_module_1 = require("./experiences/experiences.module");
 const articles_module_1 = require("./articles/articles.module");
 const auth_module_1 = require("./auth/auth.module");
+const categories_module_1 = require("./categories/categories.module");
+const upload_module_1 = require("./upload/upload.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -29,6 +31,8 @@ exports.AppModule = AppModule = __decorate([
             experiences_module_1.ExperiencesModule,
             articles_module_1.ArticlesModule,
             auth_module_1.AuthModule,
+            categories_module_1.CategoriesModule,
+            upload_module_1.UploadModule,
         ],
     })
 ], AppModule);

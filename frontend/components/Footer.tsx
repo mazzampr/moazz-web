@@ -3,8 +3,6 @@
 import Link from 'next/link';
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
-
   const socialLinks = [
     { name: 'GitHub', href: 'https://github.com/mazzampr' },
     { name: 'LinkedIn', href: 'https://www.linkedin.com/in/mazzampr/' },
@@ -90,7 +88,9 @@ export default function Footer() {
             Have a project in mind? Let's collaborate and create something extraordinary together.
           </p>
           <a
-            href="mailto:hello@moazz.dev"
+            href="mailto:mohazzampriyanto@gmail.com"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-block px-8 py-4 bg-brand-blue text-brand-black font-bold btn-brutal"
           >
             Get In Touch
@@ -100,7 +100,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 pt-8 border-t border-brand-gray">
           <p className="text-brand-white/40 text-sm">
-            © {currentYear} MOAZZ. All rights reserved.
+            © 2025 Moazzdev. All rights reserved.
           </p>
         </div>
       </div>

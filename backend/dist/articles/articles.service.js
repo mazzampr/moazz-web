@@ -16,16 +16,28 @@ let ArticlesService = class ArticlesService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async findAll(publishedOnly = true) {
-        const where = publishedOnly ? { is_published: true } : {};
+    async findAll(publishedOnly = true, categorySlug) {
+        const where = {};
+        if (publishedOnly) {
+            where.is_published = true;
+        }
+        if (categorySlug) {
+            where.categories = {
+                some: { slug: categorySlug }
+            };
+        }
         return this.prisma.article.findMany({
             where,
-            orderBy: { published_at: 'desc' },
+            orderBy: { created_at: 'desc' },
+            include: {
+                categories: true,
+            },
         });
     }
     async findBySlug(slug) {
         const article = await this.prisma.article.findUnique({
             where: { slug },
+            include: { categories: true },
         });
         if (!article) {
             throw new common_1.NotFoundException(`Article with slug "${slug}" not found`);
@@ -35,6 +47,7 @@ let ArticlesService = class ArticlesService {
     async findById(id) {
         const article = await this.prisma.article.findUnique({
             where: { id },
+            include: { categories: true },
         });
         if (!article) {
             throw new common_1.NotFoundException(`Article with ID "${id}" not found`);
@@ -42,21 +55,33 @@ let ArticlesService = class ArticlesService {
         return article;
     }
     async create(data) {
+        const { categoryIds, ...restData } = data;
         return this.prisma.article.create({
             data: {
-                ...data,
-                published_at: data.published_at ? new Date(data.published_at) : null,
+                ...restData,
+                published_at: restData.published_at ? new Date(restData.published_at) : null,
+                categories: {
+                    connect: categoryIds?.map(id => ({ id })) || [],
+                }
             },
+            include: { categories: true },
         });
     }
     async update(id, data) {
         await this.findById(id);
-        const updateData = { ...data };
-        if (data.published_at)
-            updateData.published_at = new Date(data.published_at);
+        const { categoryIds, ...restData } = data;
+        const updateData = { ...restData };
+        if (restData.published_at)
+            updateData.published_at = new Date(restData.published_at);
+        if (categoryIds !== undefined) {
+            updateData.categories = {
+                set: categoryIds.map(catId => ({ id: catId })),
+            };
+        }
         return this.prisma.article.update({
             where: { id },
             data: updateData,
+            include: { categories: true },
         });
     }
     async publish(id) {

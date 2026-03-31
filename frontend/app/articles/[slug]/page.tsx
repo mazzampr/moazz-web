@@ -1,13 +1,11 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Calendar, User } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { api } from '@/lib/api';
 import { Article } from '@/types';
+import 'quill/dist/quill.snow.css';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,7 +43,7 @@ export default async function ArticleDetailPage({ params }: Props) {
           </Link>
 
           {/* Article Header */}
-          <header className="mb-12 border-b border-white/10 pb-10">
+          <header className="border-b border-white/10 pb-10">
             <h1 className="text-4xl md:text-6xl font-display font-bold text-white mb-6 leading-tight">
               {article.title}
             </h1>
@@ -54,13 +52,11 @@ export default async function ArticleDetailPage({ params }: Props) {
               <div className="flex items-center gap-2">
                 <Calendar size={18} className="text-brand-blue" />
                 <span>
-                  {article.published_at
-                    ? new Date(article.published_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })
-                    : 'Draft'}
+                  {new Date(article.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -68,17 +64,27 @@ export default async function ArticleDetailPage({ params }: Props) {
                 <span>Moazz</span>
               </div>
             </div>
+
+            {/* Categories */}
+            {article.categories && article.categories.length > 0 && (
+              <div className="flex flex-wrap gap-3 mt-6">
+                {article.categories.map((cat) => (
+                  <span 
+                    key={cat.id} 
+                    className="px-4 py-1.5 bg-brand-gray/50 border border-white/10 rounded-full text-brand-white text-sm font-medium"
+                  >
+                    {cat.name}
+                  </span>
+                ))}
+              </div>
+            )}
           </header>
 
           {/* Article Content */}
-          <div className="prose prose-invert prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-a:text-brand-blue hover:prose-a:text-brand-lime prose-a:transition-colors prose-img:rounded-xl prose-img:border prose-img:border-white/10 prose-hr:border-white/10 prose-blockquote:border-brand-blue prose-blockquote:bg-brand-blue/5 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-lg">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeRaw]}
-            >
-              {article.content}
-            </ReactMarkdown>
-          </div>
+          <div 
+            className="prose prose-invert prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-a:text-brand-blue hover:prose-a:text-brand-lime prose-a:transition-colors prose-img:rounded-xl prose-img:border prose-img:border-white/10 prose-hr:border-white/10 prose-blockquote:border-brand-blue prose-blockquote:bg-brand-blue/5 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-lg ql-editor [&_img]:inline-block [&_img]:mx-2 [&_img]:my-0"
+            dangerouslySetInnerHTML={{ __html: article.content }}
+          />
           
           {/* Article Footer */}
           <footer className="mt-20 pt-10 border-t border-white/10 text-center">

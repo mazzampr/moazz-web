@@ -5,8 +5,19 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft, Loader2, Plus, X } from 'lucide-react';
+import { ArrowLeft, Loader2, Plus, Trash2, X } from 'lucide-react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+import { Controller } from 'react-hook-form';
+import Cookies from 'js-cookie';
+import { compressImage } from '@/lib/utils/imageCompression';
+
+const QuillEditor = dynamic(() => import('@/components/QuillEditor'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-64 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg animate-pulse" />
+  ),
+});
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -31,12 +42,15 @@ export default function CreateProjectPage() {
   const router = useRouter();
   const [techStack, setTechStack] = useState<string[]>([]);
   const [techInput, setTechInput] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDeletingImage, setIsDeletingImage] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     setValue,
     watch,
@@ -84,6 +98,76 @@ export default function CreateProjectPage() {
     if (e.key === 'Enter') {
       e.preventDefault();
       addTech();
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'thumbnail_url') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      setError('');
+
+      const compressedFile = await compressImage(file);
+
+      const formData = new FormData();
+      formData.append('file', compressedFile);
+
+      const secret = Cookies.get('ADMIN_SECRET');
+
+      const res = await fetch(`${API_URL}/upload/image`, {
+        method: 'POST',
+        headers: {
+          ...(secret ? { 'x-api-key': secret } : {}),
+        },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = await res.json();
+      setValue(field, data.url, { shouldValidate: true });
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      setError('Failed to upload image. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteImage = async () => {
+    const imageUrl = watch('thumbnail_url');
+    if (!imageUrl) return;
+
+    try {
+      setIsDeletingImage(true);
+      setError('');
+
+      if (imageUrl.includes('supabase.co/storage')) {
+        const secret = Cookies.get('ADMIN_SECRET');
+        const res = await fetch(`${API_URL}/upload/image/delete`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(secret ? { 'x-api-key': secret } : {}),
+          },
+          body: JSON.stringify({ url: imageUrl }),
+        });
+
+        if (!res.ok) {
+          throw new Error('Delete failed');
+        }
+      }
+
+      setValue('thumbnail_url', '', { shouldValidate: true });
+    } catch (err) {
+      console.error('Error deleting image:', err);
+      setError('Failed to delete image. Please try again.');
+    } finally {
+      setIsDeletingImage(false);
     }
   };
 
@@ -194,21 +278,7 @@ export default function CreateProjectPage() {
           )}
         </div>
 
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Description <span className="text-red-400">*</span>
-          </label>
-          <textarea
-            {...register('description')}
-            placeholder="A brief description of your project..."
-            rows={4}
-            className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-brand-blue transition-colors resize-none"
-          />
-          {errors.description && (
-            <p className="mt-1 text-sm text-red-400">{errors.description.message}</p>
-          )}
-        </div>
+        {/* Removed old description here */}
 
         {/* Tech Stack */}
         <div>
@@ -256,19 +326,44 @@ export default function CreateProjectPage() {
         {/* Thumbnail URL */}
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Thumbnail URL
+            Thumbnail Image
           </label>
-          <input
-            {...register('thumbnail_url')}
-            placeholder="https://example.com/image.jpg"
-            className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-brand-blue transition-colors"
-          />
-          {errors.thumbnail_url && (
-            <p className="mt-1 text-sm text-red-400">{errors.thumbnail_url.message}</p>
-          )}
-          <p className="mt-1 text-xs text-gray-500">
-            Tip: Use Unsplash URLs like https://images.unsplash.com/photo-xxx
-          </p>
+          <div className="space-y-4">
+            {watch('thumbnail_url') && (
+              <div className="relative aspect-video w-full max-w-sm rounded-lg overflow-hidden border border-[#2a2a2a]">
+                <button
+                  type="button"
+                  onClick={handleDeleteImage}
+                  disabled={isDeletingImage}
+                  className="absolute right-2 top-2 z-10 inline-flex items-center justify-center rounded-md bg-red-500/90 p-2 text-white transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  title="Delete thumbnail"
+                >
+                  {isDeletingImage ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                </button>
+                <img
+                  src={watch('thumbnail_url')}
+                  alt="Thumbnail preview"
+                  className="object-cover w-full h-full"
+                />
+              </div>
+            )}
+            <div className="flex items-center gap-4">
+              <label className="cursor-pointer bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white px-4 py-2 rounded-lg border border-[#3a3a3a] transition-colors inline-block">
+                {isUploading ? 'Uploading...' : 'Upload Image'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleImageUpload(e, 'thumbnail_url')}
+                  disabled={isUploading}
+                />
+              </label>
+              {(isUploading) && <Loader2 className="w-5 h-5 animate-spin text-brand-blue" />}
+            </div>
+            {errors.thumbnail_url && (
+              <p className="mt-1 text-sm text-red-400">{errors.thumbnail_url.message}</p>
+            )}
+          </div>
         </div>
 
         {/* Demo URL */}
@@ -314,6 +409,25 @@ export default function CreateProjectPage() {
           <p className="mt-1 text-xs text-gray-500">
             The date when this project was created or completed. Only the year will be shown publicly.
           </p>
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Description <span className="text-red-400">*</span>
+          </label>
+          <Controller
+            name="description"
+            control={control}
+            render={({ field }) => (
+              <div className="prose-editor min-h-[400px]">
+                <QuillEditor value={field.value} onChange={field.onChange} />
+              </div>
+            )}
+          />
+          {errors.description && (
+            <p className="mt-1 text-sm text-red-400">{errors.description.message}</p>
+          )}
         </div>
 
         {/* Featured Toggle */}

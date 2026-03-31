@@ -4,6 +4,7 @@ export declare class CreateArticleDto {
     content: string;
     is_published?: boolean;
     published_at?: string;
+    categoryIds?: string[];
 }
 export declare class UpdateArticleDto {
     title?: string;
@@ -11,4 +12,5 @@ export declare class UpdateArticleDto {
     content?: string;
     is_published?: boolean;
     published_at?: string;
+    categoryIds?: string[];
 }

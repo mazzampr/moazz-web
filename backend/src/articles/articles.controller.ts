@@ -37,9 +37,18 @@ export class ArticlesController {
     type: Boolean,
     description: 'Include unpublished articles (admin only)',
   })
-  findAll(@Query('all') all?: string) {
+  @ApiQuery({
+    name: 'category',
+    required: false,
+    type: String,
+    description: 'Filter by category slug',
+  })
+  findAll(
+    @Query('all') all?: string,
+    @Query('category') category?: string
+  ) {
     const publishedOnly = all !== 'true';
-    return this.articlesService.findAll(publishedOnly);
+    return this.articlesService.findAll(publishedOnly, category);
   }
 
   @Get('id/:id')
