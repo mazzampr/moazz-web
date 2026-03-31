@@ -8,14 +8,12 @@ on:
 
 jobs:
   deploy:
-    name: Smart Deploy to VPS
+    name: Deploy to VPS
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2  # Fetch last 2 commits to compare changes
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.0.3
@@ -34,15 +32,6 @@ jobs:
             # Navigate to app directory
             cd ~/moazz-web
             
-            # Fetch latest changes and detect what changed
-            echo "📡 Fetching latest changes..."
-            git fetch origin main
-            
-            # Get list of changed files between current HEAD and origin/main
-            CHANGED_FILES=$(git diff --name-only HEAD origin/main)
-            echo "📝 Changed files:"
-            echo "$CHANGED_FILES"
-            
             # Pull latest code
             echo "⬇️  Pulling latest code..."
             git pull origin main
@@ -60,69 +49,24 @@ jobs:
             
             echo "✅ .env file updated with latest secrets"
             
-            # Smart rebuild detection
-            echo ""
-            echo "🔍 Analyzing changes..."
-            
-            # Check if rebuild is needed
-            NEEDS_REBUILD=false
-            
-            # Check for dependency changes
-            if echo "$CHANGED_FILES" | grep -qE "package\.json|package-lock\.json"; then
-              echo "⚠️  Dependency files changed (package.json or package-lock.json)"
-              NEEDS_REBUILD=true
-            fi
-            
-            # Check for Dockerfile changes
-            if echo "$CHANGED_FILES" | grep -qE "Dockerfile"; then
-              echo "⚠️  Dockerfile changed"
-              NEEDS_REBUILD=true
-            fi
-            
-            # Check for Prisma schema changes
-            if echo "$CHANGED_FILES" | grep -qE "prisma/schema\.prisma"; then
-              echo "⚠️  Prisma schema changed"
-              NEEDS_REBUILD=true
-            fi
-            
-            # Check for Docker Compose changes
-            if echo "$CHANGED_FILES" | grep -qE "docker-compose\.prod\.yml"; then
-              echo "⚠️  Docker Compose configuration changed"
-              NEEDS_REBUILD=true
-            fi
-            
             echo ""
             echo "=========================================="
+            echo "🔨 FULL REBUILD"
+            echo "=========================================="
+            echo "This will take approximately 20-30 minutes..."
+            echo ""
             
             # Stop existing containers
             echo "🛑 Stopping containers..."
             docker compose -f docker-compose.prod.yml down
             
-            # Execute deployment based on changes
-            if [ "$NEEDS_REBUILD" = true ]; then
-              echo "🔨 FULL REBUILD REQUIRED"
-              echo "=========================================="
-              echo "This will take approximately 20-30 minutes..."
-              echo ""
-              
-              # Remove old images to save space
-              echo "🧹 Cleaning up old images..."
-              docker image prune -af
-              
-              # Build new images
-              echo "🔨 Building new images..."
-              docker compose -f docker-compose.prod.yml build --no-cache
-              
-            else
-              echo "⚡ QUICK DEPLOYMENT (Code changes only)"
-              echo "=========================================="
-              echo "This will take approximately 10-15 minutes..."
-              echo ""
-              
-              # Rebuild images without cache to ensure new code is used
-              echo "🔨 Rebuilding images..."
-              docker compose -f docker-compose.prod.yml build --no-cache
-            fi
+            # Remove old images to save space
+            echo "🧹 Cleaning up old images..."
+            docker image prune -af
+            
+            # Build new images without cache
+            echo "🔨 Building new images (no cache)..."
+            docker compose -f docker-compose.prod.yml build --no-cache
             
             # Start containers
             echo "▶️  Starting containers with new images..."
@@ -152,11 +96,7 @@ jobs:
             echo "=========================================="
             echo "✅ Deployment Complete!"
             echo "=========================================="
-            if [ "$NEEDS_REBUILD" = true ]; then
-              echo "Deployed with FULL REBUILD"
-            else
-              echo "Deployed with QUICK RESTART"
-            fi
+            echo "Deployed with FULL REBUILD"
             echo "Website: https://moazz.dev"
 
       - name: Deployment Status
