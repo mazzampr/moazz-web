@@ -94,16 +94,16 @@ jobs:
             echo ""
             echo "=========================================="
             
+            # Stop existing containers
+            echo "🛑 Stopping containers..."
+            docker compose -f docker-compose.prod.yml down
+            
             # Execute deployment based on changes
             if [ "$NEEDS_REBUILD" = true ]; then
               echo "🔨 FULL REBUILD REQUIRED"
               echo "=========================================="
               echo "This will take approximately 20-30 minutes..."
               echo ""
-              
-              # Stop existing containers
-              echo "🛑 Stopping containers..."
-              docker compose -f docker-compose.prod.yml down
               
               # Remove old images to save space
               echo "🧹 Cleaning up old images..."
@@ -113,23 +113,20 @@ jobs:
               echo "🔨 Building new images..."
               docker compose -f docker-compose.prod.yml build --no-cache
               
-              # Start containers
-              echo "▶️  Starting containers with new images..."
-              docker compose -f docker-compose.prod.yml up -d
-              
             else
               echo "⚡ QUICK DEPLOYMENT (Code changes only)"
               echo "=========================================="
-              echo "This will take approximately 5-10 minutes..."
+              echo "This will take approximately 10-15 minutes..."
               echo ""
               
-              # Rebuild images (using cache) and restart containers
-              echo "🔨 Rebuilding images with cache..."
-              docker compose -f docker-compose.prod.yml build
-              
-              echo "🔄 Restarting containers with new images..."
-              docker compose -f docker-compose.prod.yml up -d --force-recreate
+              # Rebuild images without cache to ensure new code is used
+              echo "🔨 Rebuilding images..."
+              docker compose -f docker-compose.prod.yml build --no-cache
             fi
+            
+            # Start containers
+            echo "▶️  Starting containers with new images..."
+            docker compose -f docker-compose.prod.yml up -d
             
             echo ""
             echo "=========================================="
