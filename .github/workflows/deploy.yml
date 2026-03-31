@@ -25,16 +25,36 @@ jobs:
           timeout: 60s
           command_timeout: 45m
           script: |
+            set -e  # Exit immediately if any command fails
+            
             echo "=========================================="
-            echo "🚀 Starting Smart Deployment"
+            echo "🚀 Starting Deployment"
             echo "=========================================="
             
             # Navigate to app directory
             cd ~/moazz-web
             
+            # Show current git status
+            echo ""
+            echo "📊 Current git status:"
+            git status
+            
+            # Show current commit
+            echo ""
+            echo "📍 Current commit:"
+            git log -1 --oneline
+            
             # Pull latest code
-            echo "⬇️  Pulling latest code..."
-            git pull origin main
+            echo ""
+            echo "⬇️  Fetching latest code from GitHub..."
+            git fetch origin main || { echo "❌ Git fetch failed!"; exit 1; }
+            
+            echo "🔄 Resetting to latest commit (discarding local changes)..."
+            git reset --hard origin/main || { echo "❌ Git reset failed!"; exit 1; }
+            
+            echo ""
+            echo "✅ Code updated to latest commit:"
+            git log -1 --oneline
             
             # Always update .env file with latest secrets from GitHub
             echo "📄 Updating .env file with latest secrets..."
