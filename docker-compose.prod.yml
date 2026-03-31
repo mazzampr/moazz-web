@@ -43,6 +43,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://moazz.dev/api/v1
     container_name: moazz-frontend
     restart: always
     expose:
