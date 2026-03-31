@@ -120,11 +120,14 @@ jobs:
             else
               echo "⚡ QUICK DEPLOYMENT (Code changes only)"
               echo "=========================================="
-              echo "This will take approximately 1-2 minutes..."
+              echo "This will take approximately 5-10 minutes..."
               echo ""
               
-              # Just restart containers with existing images
-              echo "🔄 Restarting containers..."
+              # Rebuild images (using cache) and restart containers
+              echo "🔨 Rebuilding images with cache..."
+              docker compose -f docker-compose.prod.yml build
+              
+              echo "🔄 Restarting containers with new images..."
               docker compose -f docker-compose.prod.yml up -d --force-recreate
             fi
             
