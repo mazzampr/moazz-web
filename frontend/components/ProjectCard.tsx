@@ -4,6 +4,11 @@ import { Project } from '@/types';
 import Image from 'next/image';
 import Link from 'next/link';
 
+// Helper function to strip HTML tags for preview text
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+}
+
 interface ProjectCardProps {
   project: Project;
   index: number;
@@ -58,7 +63,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
 
         {/* Description */}
         <p className="text-brand-white/70 text-sm mb-4 line-clamp-2">
-          {project.description}
+          {stripHtml(project.description)}
         </p>
 
         {/* Tech Stack */}

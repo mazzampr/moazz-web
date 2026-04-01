@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft, ExternalLink, Github, Calendar, ArrowRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import ProjectContent from '@/components/ProjectContent';
 import { api } from '@/lib/api';
 import { Project } from '@/types';
 
@@ -55,19 +56,18 @@ export default async function ProjectDetailPage({ params }: Props) {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 mb-16">
             {/* Image — Left (3/5) */}
             <div className="lg:col-span-3">
-              <div className="relative aspect-[16/10] bg-[#1a1a1a] rounded-sm overflow-hidden border border-white/10 shadow-2xl">
-                {project.thumbnail_url ? (
-                  <img
-                    src={project.thumbnail_url}
-                    alt={`${project.title} Preview`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
+              {project.thumbnail_url ? (
+                <ProjectContent
+                  thumbnailUrl={project.thumbnail_url}
+                  thumbnailAlt={`${project.title} Preview`}
+                />
+              ) : (
+                <div className="relative aspect-[16/10] bg-[#1a1a1a] rounded-sm overflow-hidden border border-white/10 shadow-2xl">
                   <div className="w-full h-full flex items-center justify-center">
                     <span className="text-white/10 font-display text-8xl">{project.title[0]}</span>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Info — Right (2/5) */}
@@ -129,11 +129,9 @@ export default async function ProjectDetailPage({ params }: Props) {
           {/* Bottom Section: Full-width Description */}
           <section className="pt-6">
             <h3 className="text-sm uppercase tracking-widest text-brand-blue font-bold mb-6">About the Project</h3>
-            <div className="prose prose-invert prose-lg max-w-none text-gray-300 leading-relaxed font-sans">
-              {project.description.split('\n').map((paragraph, index) => (
-                paragraph.trim() ? <p key={index} className="mb-5 text-lg">{paragraph}</p> : null
-              ))}
-            </div>
+            <ProjectContent
+              description={project.description}
+            />
           </section>
         </article>
       </main>

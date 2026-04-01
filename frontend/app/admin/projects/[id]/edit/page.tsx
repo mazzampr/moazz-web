@@ -9,8 +9,8 @@ import { ArrowLeft, Loader2, Plus, Trash2, X } from 'lucide-react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Controller } from 'react-hook-form';
-import Cookies from 'js-cookie';
 import { compressImage } from '@/lib/utils/imageCompression';
+import { api } from '@/lib/api';
 
 const QuillEditor = dynamic(() => import('@/components/QuillEditor'), {
   ssr: false,
@@ -18,8 +18,6 @@ const QuillEditor = dynamic(() => import('@/components/QuillEditor'), {
     <div className="w-full h-64 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg animate-pulse" />
   ),
 });
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
 const projectSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100, 'Title too long'),
@@ -65,26 +63,22 @@ export default function EditProjectPage() {
   useEffect(() => {
     async function fetchProject() {
       try {
-        const res = await fetch(`${API_URL}/projects/id/${id}`);
-        if (res.ok) {
-          const data = await res.json();
-          reset({
-            title: data.title,
-            description: data.description,
-            slug: data.slug,
-            thumbnail_url: data.thumbnail_url || '',
-            demo_url: data.demo_url || '',
-            repo_url: data.repo_url || '',
-            is_featured: data.is_featured || false,
-            project_date: data.project_date ? new Date(data.project_date).toISOString().split('T')[0] : '',
-          });
-          setTechStack(data.tech_stack || []);
-        } else {
-          setError('Project not found');
-        }
-      } catch (err) {
-        console.error('Error fetching project:', err);
-        setError('Error connecting to server');
+        const data = await api.projects.getById(id);
+        reset({
+          title: data.title,
+          description: data.description,
+          slug: data.slug,
+          thumbnail_url: data.thumbnail_url || '',
+          demo_url: data.demo_url || '',
+          repo_url: data.repo_url || '',
+          is_featured: data.is_featured || false,
+          project_date: data.project_date ? new Date(data.project_date).toISOString().split('T')[0] : '',
+        });
+        setTechStack(data.tech_stack || []);
+      } catch (error) {
+        console.error('Error fetching project:', error);
+        const message = error instanceof Error ? error.message : 'Error connecting to server';
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -110,6 +104,17 @@ export default function EditProjectPage() {
     }
   };
 
+  // Auto-generate slug from title
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    const slug = newTitle
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+    setValue('slug', slug);
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'thumbnail_url') => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -119,29 +124,12 @@ export default function EditProjectPage() {
       setError('');
 
       const compressedFile = await compressImage(file);
-
-      const formData = new FormData();
-      formData.append('file', compressedFile);
-
-      const secret = Cookies.get('ADMIN_SECRET');
-
-      const res = await fetch(`${API_URL}/upload/image`, {
-        method: 'POST',
-        headers: {
-          ...(secret ? { 'x-api-key': secret } : {}),
-        },
-        body: formData,
-      });
-
-      if (!res.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const data = await res.json();
+      const data = await api.upload.image(compressedFile);
       setValue(field, data.url, { shouldValidate: true });
-    } catch (err) {
-      console.error('Error uploading image:', err);
-      setError('Failed to upload image. Please try again.');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      const message = error instanceof Error ? error.message : 'Failed to upload image. Please try again.';
+      setError(message);
     } finally {
       setIsUploading(false);
     }
@@ -156,25 +144,14 @@ export default function EditProjectPage() {
       setError('');
 
       if (imageUrl.includes('supabase.co/storage')) {
-        const secret = Cookies.get('ADMIN_SECRET');
-        const res = await fetch(`${API_URL}/upload/image/delete`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(secret ? { 'x-api-key': secret } : {}),
-          },
-          body: JSON.stringify({ url: imageUrl }),
-        });
-
-        if (!res.ok) {
-          throw new Error('Delete failed');
-        }
+        await api.upload.deleteImage(imageUrl);
       }
 
       setValue('thumbnail_url', '', { shouldValidate: true });
-    } catch (err) {
-      console.error('Error deleting image:', err);
-      setError('Failed to delete image. Please try again.');
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      const message = error instanceof Error ? error.message : 'Failed to delete image. Please try again.';
+      setError(message);
     } finally {
       setIsDeletingImage(false);
     }
@@ -200,22 +177,13 @@ export default function EditProjectPage() {
         project_date: data.project_date || undefined,
       };
 
-      const res = await fetch(`${API_URL}/projects/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        router.push('/admin/projects');
-        router.refresh();
-      } else {
-        const errorData = await res.json();
-        setError(errorData.message || 'Failed to update project');
-      }
-    } catch (err) {
-      console.error('Error updating project:', err);
-      setError('Error connecting to server');
+      await api.projects.update(id, payload);
+      router.push('/admin/projects');
+      router.refresh();
+    } catch (error) {
+      console.error('Error updating project:', error);
+      const message = error instanceof Error ? error.message : 'Error connecting to server';
+      setError(message);
     } finally {
       setSubmitting(false);
     }
@@ -256,6 +224,10 @@ export default function EditProjectPage() {
           </label>
           <input
             {...register('title')}
+            onChange={(e) => {
+              register('title').onChange(e);
+              handleTitleChange(e);
+            }}
             placeholder="My Awesome Project"
             className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-brand-blue transition-colors"
           />

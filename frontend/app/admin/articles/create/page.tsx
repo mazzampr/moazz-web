@@ -362,20 +362,20 @@ export default function CreateArticlePage() {
         .prose-editor .ql-toolbar button.ql-active,
         .prose-editor .ql-toolbar .ql-picker-label:hover,
         .prose-editor .ql-toolbar .ql-picker-label.ql-active {
-          color: #ccff00;
+          color: #3b82f6;
         }
         .prose-editor .ql-toolbar button:hover .ql-stroke,
         .prose-editor .ql-toolbar button.ql-active .ql-stroke {
-          stroke: #ccff00;
+          stroke: #3b82f6;
         }
         .prose-editor .ql-toolbar button:hover .ql-fill,
         .prose-editor .ql-toolbar button.ql-active .ql-fill {
-          fill: #ccff00;
+          fill: #3b82f6;
         }
         .prose-editor .ql-editor h1,
         .prose-editor .ql-editor h2,
         .prose-editor .ql-editor h3 {
-          color: #ccff00;
+          color: #3b82f6;
         }
         .prose-editor .ql-editor a {
           color: #3b82f6;

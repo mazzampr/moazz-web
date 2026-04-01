@@ -7,8 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+import { api } from '@/lib/api';
 
 const experienceSchema = z.object({
   position: z.string().min(1, 'Position is required'),
@@ -42,23 +41,19 @@ export default function EditExperiencePage() {
   useEffect(() => {
     async function fetchExperience() {
       try {
-        const res = await fetch(`${API_URL}/experiences/${id}`);
-        if (res.ok) {
-          const data = await res.json();
-          reset({
-            position: data.position,
-            company: data.company,
-            start_date: data.start_date ? data.start_date.split('T')[0] : '',
-            end_date: data.end_date ? data.end_date.split('T')[0] : '',
-            description: data.description,
-            order: String(data.order ?? 0),
-          });
-        } else {
-          setError('Experience not found');
-        }
-      } catch (err) {
-        console.error('Error fetching experience:', err);
-        setError('Error connecting to server');
+        const data = await api.experiences.getById(id);
+        reset({
+          position: data.position,
+          company: data.company,
+          start_date: data.start_date ? data.start_date.split('T')[0] : '',
+          end_date: data.end_date ? data.end_date.split('T')[0] : '',
+          description: data.description,
+          order: String(data.order ?? 0),
+        });
+      } catch (error) {
+        console.error('Error fetching experience:', error);
+        const message = error instanceof Error ? error.message : 'Error connecting to server';
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -80,22 +75,13 @@ export default function EditExperiencePage() {
         order: data.order ? parseInt(data.order, 10) : 0,
       };
 
-      const res = await fetch(`${API_URL}/experiences/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        router.push('/admin/experiences');
-        router.refresh();
-      } else {
-        const errorData = await res.json();
-        setError(errorData.message || 'Failed to update experience');
-      }
-    } catch (err) {
-      console.error('Error updating experience:', err);
-      setError('Error connecting to server');
+      await api.experiences.update(id, payload);
+      router.push('/admin/experiences');
+      router.refresh();
+    } catch (error) {
+      console.error('Error updating experience:', error);
+      const message = error instanceof Error ? error.message : 'Error connecting to server';
+      setError(message);
     } finally {
       setSubmitting(false);
     }

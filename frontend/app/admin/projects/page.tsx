@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Plus, Pencil, Trash2, ExternalLink, Loader2, Star } from 'lucide-react';
 import { Project } from '@/types';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+import { api } from '@/lib/api';
 
 export default function AdminProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -14,11 +13,14 @@ export default function AdminProjectsPage() {
 
   const fetchProjects = async () => {
     try {
-      const res = await fetch(`${API_URL}/projects`);
-      if (res.ok) {
-        const data = await res.json();
-        setProjects(data);
-      }
+      const data = await api.projects.getAll();
+      // Sort by project_date (latest first), fallback to created_at if no project_date
+      const sorted = data.sort((a: { project_date: string | number | Date; }, b: { project_date: string | number | Date; }) => {
+        const dateA = a.project_date ? new Date(a.project_date).getTime() : 0;
+        const dateB = b.project_date ? new Date(b.project_date).getTime() : 0;
+        return dateB - dateA;
+      });
+      setProjects(sorted);
     } catch (error) {
       console.error('Error fetching projects:', error);
     } finally {
@@ -35,17 +37,12 @@ export default function AdminProjectsPage() {
 
     setDeleting(id);
     try {
-      const res = await fetch(`${API_URL}/projects/${id}`, {
-        method: 'DELETE',
-      });
-      if (res.ok) {
-        setProjects(projects.filter((p) => p.id !== id));
-      } else {
-        alert('Failed to delete project');
-      }
+      await api.projects.delete(id);
+      setProjects(projects.filter((p) => p.id !== id));
     } catch (error) {
       console.error('Error deleting project:', error);
-      alert('Error deleting project');
+      const message = error instanceof Error ? error.message : 'Failed to delete project';
+      alert(message);
     } finally {
       setDeleting(null);
     }
@@ -99,7 +96,7 @@ export default function AdminProjectsPage() {
                   Tech Stack
                 </th>
                 <th className="text-left text-gray-400 text-sm font-medium px-6 py-4 hidden md:table-cell">
-                  Created
+                  Project Date
                 </th>
                 <th className="text-center text-gray-400 text-sm font-medium px-6 py-4">
                   Featured
@@ -154,7 +151,7 @@ export default function AdminProjectsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-gray-400 text-sm hidden md:table-cell">
-                    {new Date(project.created_at).toLocaleDateString()}
+                    {project.project_date ? new Date(project.project_date).toLocaleDateString() : '-'}
                   </td>
                   <td className="px-6 py-4 text-center">
                     {project.is_featured ? (

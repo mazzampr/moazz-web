@@ -9,8 +9,8 @@ import { ArrowLeft, Loader2, Plus, Trash2, X } from 'lucide-react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Controller } from 'react-hook-form';
-import Cookies from 'js-cookie';
 import { compressImage } from '@/lib/utils/imageCompression';
+import { api } from '@/lib/api';
 
 const QuillEditor = dynamic(() => import('@/components/QuillEditor'), {
   ssr: false,
@@ -18,8 +18,6 @@ const QuillEditor = dynamic(() => import('@/components/QuillEditor'), {
     <div className="w-full h-64 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg animate-pulse" />
   ),
 });
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
 // Validation schema
 const projectSchema = z.object({
@@ -69,7 +67,6 @@ export default function CreateProjectPage() {
   });
 
   // Auto-generate slug from title
-  const title = watch('title');
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     const slug = newTitle
@@ -110,29 +107,12 @@ export default function CreateProjectPage() {
       setError('');
 
       const compressedFile = await compressImage(file);
-
-      const formData = new FormData();
-      formData.append('file', compressedFile);
-
-      const secret = Cookies.get('ADMIN_SECRET');
-
-      const res = await fetch(`${API_URL}/upload/image`, {
-        method: 'POST',
-        headers: {
-          ...(secret ? { 'x-api-key': secret } : {}),
-        },
-        body: formData,
-      });
-
-      if (!res.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const data = await res.json();
+      const data = await api.upload.image(compressedFile);
       setValue(field, data.url, { shouldValidate: true });
-    } catch (err) {
-      console.error('Error uploading image:', err);
-      setError('Failed to upload image. Please try again.');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      const message = error instanceof Error ? error.message : 'Failed to upload image. Please try again.';
+      setError(message);
     } finally {
       setIsUploading(false);
     }
@@ -147,25 +127,14 @@ export default function CreateProjectPage() {
       setError('');
 
       if (imageUrl.includes('supabase.co/storage')) {
-        const secret = Cookies.get('ADMIN_SECRET');
-        const res = await fetch(`${API_URL}/upload/image/delete`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(secret ? { 'x-api-key': secret } : {}),
-          },
-          body: JSON.stringify({ url: imageUrl }),
-        });
-
-        if (!res.ok) {
-          throw new Error('Delete failed');
-        }
+        await api.upload.deleteImage(imageUrl);
       }
 
       setValue('thumbnail_url', '', { shouldValidate: true });
-    } catch (err) {
-      console.error('Error deleting image:', err);
-      setError('Failed to delete image. Please try again.');
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      const message = error instanceof Error ? error.message : 'Failed to delete image. Please try again.';
+      setError(message);
     } finally {
       setIsDeletingImage(false);
     }
@@ -192,24 +161,13 @@ export default function CreateProjectPage() {
         project_date: data.project_date || undefined,
       };
 
-      const res = await fetch(`${API_URL}/projects`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        router.push('/admin/projects');
-        router.refresh();
-      } else {
-        const errorData = await res.json();
-        setError(errorData.message || 'Failed to create project');
-      }
-    } catch (err) {
-      console.error('Error creating project:', err);
-      setError('Error connecting to server');
+      await api.projects.create(payload);
+      router.push('/admin/projects');
+      router.refresh();
+    } catch (error) {
+      console.error('Error creating project:', error);
+      const message = error instanceof Error ? error.message : 'Error connecting to server';
+      setError(message);
     } finally {
       setSubmitting(false);
     }

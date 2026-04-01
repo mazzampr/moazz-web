@@ -5,8 +5,7 @@ import Link from 'next/link';
 import { Plus, Pencil, Trash2, ExternalLink, Loader2 } from 'lucide-react';
 import { Experience } from '@/types';
 import { formatDateRange } from '@/lib/date';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+import { api } from '@/lib/api';
 
 export default function AdminExperiencesPage() {
     const [experiences, setExperiences] = useState<Experience[]>([]);
@@ -15,11 +14,8 @@ export default function AdminExperiencesPage() {
 
     const fetchExperiences = async () => {
         try {
-            const res = await fetch(`${API_URL}/experiences`);
-            if (res.ok) {
-                const data = await res.json();
-                setExperiences(data);
-            }
+            const data = await api.experiences.getAll();
+            setExperiences(data);
         } catch (error) {
             console.error('Error fetching experiences:', error);
         } finally {
@@ -36,17 +32,12 @@ export default function AdminExperiencesPage() {
 
         setDeleting(id);
         try {
-            const res = await fetch(`${API_URL}/experiences/${id}`, {
-                method: 'DELETE',
-            });
-            if (res.ok) {
-                setExperiences(experiences.filter((p) => p.id !== id));
-            } else {
-                alert('Failed to delete experience');
-            }
+            await api.experiences.delete(id);
+            setExperiences(experiences.filter((p) => p.id !== id));
         } catch (error) {
             console.error('Error deleting experience:', error);
-            alert('Error deleting experience');
+            const message = error instanceof Error ? error.message : 'Failed to delete experience';
+            alert(message);
         } finally {
             setDeleting(null);
         }

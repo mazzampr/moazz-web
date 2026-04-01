@@ -40,7 +40,7 @@ export default function ExperienceTimeline({ experiences }: ExperienceTimelinePr
               <h4 className="text-lg text-brand-blue mb-4">{exp.company}</h4>
 
               {/* Description */}
-              <p className="text-brand-white/70 mb-4 leading-relaxed">
+              <p className={`text-brand-white/70 mb-4 leading-relaxed text-justify ${index % 2 === 0 ? 'md:pl-4' : 'md:pr-4'}`}>
                 {exp.description}
               </p>
             </div>

@@ -124,7 +124,7 @@ export default async function Home() {
 
       {/* Experience Section */}
       <section id="experience" className="py-20 px-6 bg-brand-gray/30">
-        <div className="max-w-6xl mx-auto">
+        <div className="container mx-auto px-6 md:px-24">
           {/* Section Header */}
           <div className="mb-16 text-center">
             <h2 className="font-display font-bold text-5xl md:text-7xl text-brand-white mb-4">

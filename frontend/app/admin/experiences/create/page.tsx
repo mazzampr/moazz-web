@@ -7,8 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+import { api } from '@/lib/api';
 
 const experienceSchema = z.object({
   position: z.string().min(1, 'Position is required'),
@@ -56,22 +55,13 @@ export default function CreateExperiencePage() {
         order: data.order ? parseInt(data.order, 10) : 0,
       };
 
-      const res = await fetch(`${API_URL}/experiences`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        router.push('/admin/experiences');
-        router.refresh();
-      } else {
-        const errorData = await res.json();
-        setError(errorData.message || 'Failed to create experience');
-      }
-    } catch (err) {
-      console.error('Error creating experience:', err);
-      setError('Error connecting to server');
+      await api.experiences.create(payload);
+      router.push('/admin/experiences');
+      router.refresh();
+    } catch (error) {
+      console.error('Error creating experience:', error);
+      const message = error instanceof Error ? error.message : 'Error connecting to server';
+      setError(message);
     } finally {
       setSubmitting(false);
     }

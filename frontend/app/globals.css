@@ -125,3 +125,48 @@ body {
 .prose-editor .ql-editor {
   color: #f4f4f4;
 }
+
+/* Quill alignment classes for rendered HTML */
+.prose .ql-align-center {
+  text-align: center;
+}
+
+.prose .ql-align-right {
+  text-align: right;
+}
+
+.prose .ql-align-justify {
+  text-align: justify;
+}
+
+/* Center images in prose when wrapped in center-aligned containers */
+.prose .ql-align-center img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Handle images with inline style text-align center */
+.prose p[style*="text-align: center"] img,
+.prose p[style*="text-align:center"] img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Prose text justify */
+.prose-justify p {
+  text-align: justify;
+}
+
+.prose-justify .ql-align-center,
+.prose-justify p[style*="text-align: center"],
+.prose-justify p[style*="text-align:center"] {
+  text-align: center;
+}
+
+.prose-justify .ql-align-right,
+.prose-justify p[style*="text-align: right"],
+.prose-justify p[style*="text-align:right"] {
+  text-align: right;
+}

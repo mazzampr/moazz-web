@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Plus, Pencil, Trash2, Eye, EyeOff, Loader2, Tags } from 'lucide-react';
 import { Article } from '@/types';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+import { api } from '@/lib/api';
 
 export default function AdminArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -14,11 +13,8 @@ export default function AdminArticlesPage() {
 
   const fetchArticles = async () => {
     try {
-      const res = await fetch(`${API_URL}/articles?all=true`);
-      if (res.ok) {
-        const data = await res.json();
-        setArticles(data);
-      }
+      const data = await api.articles.getAll(true);
+      setArticles(data);
     } catch (error) {
       console.error('Error fetching articles:', error);
     } finally {
@@ -35,17 +31,12 @@ export default function AdminArticlesPage() {
 
     setDeleting(id);
     try {
-      const res = await fetch(`${API_URL}/articles/${id}`, {
-        method: 'DELETE',
-      });
-      if (res.ok) {
-        setArticles(articles.filter((a) => a.id !== id));
-      } else {
-        alert('Failed to delete article');
-      }
+      await api.articles.delete(id);
+      setArticles(articles.filter((a) => a.id !== id));
     } catch (error) {
       console.error('Error deleting article:', error);
-      alert('Error deleting article');
+      const message = error instanceof Error ? error.message : 'Failed to delete article';
+      alert(message);
     } finally {
       setDeleting(null);
     }
@@ -53,31 +44,22 @@ export default function AdminArticlesPage() {
 
   const togglePublish = async (article: Article) => {
     try {
-      const res = await fetch(`${API_URL}/articles/${article.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          is_published: !article.is_published,
-          published_at: !article.is_published ? new Date().toISOString() : null,
-        }),
-      });
-      if (res.ok) {
-        setArticles(
-          articles.map((a) =>
-            a.id === article.id
-              ? {
-                ...a,
-                is_published: !a.is_published,
-                published_at: !a.is_published ? new Date().toISOString() : undefined,
-              }
-              : a
-          )
-        );
-      }
+      await api.articles.togglePublish(article.id, article.is_published);
+      setArticles(
+        articles.map((a) =>
+          a.id === article.id
+            ? {
+              ...a,
+              is_published: !a.is_published,
+              published_at: !a.is_published ? new Date().toISOString() : undefined,
+            }
+            : a
+        )
+      );
     } catch (error) {
       console.error('Error updating article:', error);
+      const message = error instanceof Error ? error.message : 'Failed to toggle publish status';
+      alert(message);
     }
   };
 

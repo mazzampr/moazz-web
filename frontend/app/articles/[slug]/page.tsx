@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft, Calendar, User } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import ArticleContent from '@/components/ArticleContent';
 import { api } from '@/lib/api';
 import { Article } from '@/types';
 import 'quill/dist/quill.snow.css';
@@ -81,10 +82,7 @@ export default async function ArticleDetailPage({ params }: Props) {
           </header>
 
           {/* Article Content */}
-          <div 
-            className="prose prose-invert prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-a:text-brand-blue hover:prose-a:text-brand-lime prose-a:transition-colors prose-img:rounded-xl prose-img:border prose-img:border-white/10 prose-hr:border-white/10 prose-blockquote:border-brand-blue prose-blockquote:bg-brand-blue/5 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-lg ql-editor [&_img]:inline-block [&_img]:mx-2 [&_img]:my-0"
-            dangerouslySetInnerHTML={{ __html: article.content }}
-          />
+          <ArticleContent content={article.content} />
           
           {/* Article Footer */}
           <footer className="mt-20 pt-10 border-t border-white/10 text-center">
