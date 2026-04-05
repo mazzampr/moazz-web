@@ -38,7 +38,7 @@ export default async function ArticlesPage() {
               All <span className="text-brand-blue">Articles</span>
             </h1>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Thoughts, tutorials, and insights on web development, design, and software engineering.
+              Thoughts, tutorials, and insights on technology. Sharing knowledge and ideas to inspire others.
             </p>
           </div>
 

@@ -77,14 +77,14 @@ export default function Navbar() {
         {isMenuOpen && (
           <div className="md:hidden pt-4 pb-2 flex flex-col gap-4">
             <Link
-              href="#work"
+              href="/projects"
               className="font-medium hover:text-brand-blue transition-colors py-2"
               onClick={() => setIsMenuOpen(false)}
             >
               Work
             </Link>
             <Link
-              href="#experience"
+              href="/#experience"
               className="font-medium hover:text-brand-blue transition-colors py-2"
               onClick={() => setIsMenuOpen(false)}
             >

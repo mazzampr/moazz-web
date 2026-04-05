@@ -71,7 +71,7 @@ export default function ArticleContent({ content }: ArticleContentProps) {
       {/* Article Content */}
       <div 
         ref={contentRef}
-        className="prose prose-invert prose-lg prose-justify max-w-none prose-headings:font-display prose-headings:font-bold prose-a:text-brand-blue hover:prose-a:text-brand-lime prose-a:transition-colors prose-img:rounded-xl prose-img:border prose-img:border-white/10 prose-img:cursor-pointer prose-img:transition-opacity hover:prose-img:opacity-80 prose-hr:border-white/10 prose-blockquote:border-brand-blue prose-blockquote:bg-brand-blue/5 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-lg ql-editor [&_img]:inline-block [&_img]:mx-2 [&_img]:my-0"
+        className="prose prose-invert prose-base md:prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-a:text-brand-blue hover:prose-a:text-brand-lime prose-a:transition-colors prose-img:rounded-xl prose-img:border prose-img:border-white/10 prose-img:cursor-pointer prose-img:transition-opacity hover:prose-img:opacity-80 prose-hr:border-white/10 prose-blockquote:border-brand-blue prose-blockquote:bg-brand-blue/5 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-lg ql-editor [&_img]:inline-block [&_img]:mx-2 [&_img]:my-0 prose-p:text-left"
         dangerouslySetInnerHTML={{ __html: content }}
       />
 

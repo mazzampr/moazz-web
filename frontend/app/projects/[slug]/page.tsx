@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ExternalLink, Github, Calendar, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Github } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProjectContent from '@/components/ProjectContent';
@@ -33,8 +33,8 @@ export default async function ProjectDetailPage({ params }: Props) {
     <>
       <Navbar />
 
-      <main className="pt-32 pb-20 px-6 min-h-screen bg-brand-black">
-        <article className="max-w-6xl mx-auto">
+      <main className="pt-32 pb-20 px-2 sm:px-4 md:px-6 min-h-screen bg-brand-black">
+        <article className="max-w-5xl mx-auto">
           {/* Back Button */}
           <Link
             href="/projects"

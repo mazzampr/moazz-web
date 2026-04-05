@@ -93,7 +93,7 @@ export default function ProjectContent({ thumbnailUrl, thumbnailAlt, description
       {description && (
         <div 
           ref={descriptionRef}
-          className="prose prose-invert prose-lg prose-justify max-w-none text-gray-300 leading-relaxed font-sans prose-p:mb-5 prose-p:text-lg prose-img:cursor-pointer prose-img:transition-opacity hover:prose-img:opacity-80"
+          className="prose prose-invert prose-base md:prose-lg max-w-none text-gray-300 leading-relaxed font-sans prose-p:mb-5 prose-p:text-base md:prose-p:text-lg prose-p:text-left prose-img:cursor-pointer prose-img:transition-opacity hover:prose-img:opacity-80"
           dangerouslySetInnerHTML={{ __html: description }}
         />
       )}

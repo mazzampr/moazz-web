@@ -157,7 +157,7 @@ export default async function Home() {
               Latest <span className="text-brand-blue">Articles</span>
             </h2>
             <p className="text-brand-white/60 text-lg max-w-2xl">
-              Thoughts, tutorials, and insights on web development and design.
+              Thoughts, tutorials, and insights on technology, design, and software development. Sharing knowledge and ideas to inspire others.
             </p>
           </div>
 

@@ -32,8 +32,8 @@ export default async function ArticleDetailPage({ params }: Props) {
     <>
       <Navbar />
 
-      <main className="pt-32 pb-20 px-6 min-h-screen bg-brand-black">
-        <article className="max-w-4xl mx-auto">
+      <main className="pt-32 pb-20 px-2 sm:px-4 md:px-6 min-h-screen bg-brand-black">
+        <article className="max-w-3xl mx-auto">
           {/* Back Button */}
           <Link
             href="/articles"
